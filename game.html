@@ -44,32 +44,48 @@
       function generateCombinations(digits, operators) {
         var combinations = [];
         var count = 0;
+        var maxResults = 3; // 表示する結果の最大数
 
-        function generateExpressions(expression, remainingDigits, remainingOperators) {
+        function generateExpressions(currentExpression, remainingDigits) {
           if (remainingDigits.length === 0) {
-            var result = evaluateExpression(expression);
+            var result = evaluateExpression(currentExpression);
             if (result === 10) {
-              combinations.push(expression + " = " + result);
+              combinations.push(currentExpression + " = " + result);
+              count++;
+              if (count >= maxResults) {
+                throw new Error("maxResultsReached");
+              }
             }
             return;
           }
 
           for (var i = 0; i < remainingDigits.length; i++) {
-            for (var j = 0; j < remainingOperators.length; j++) {
-              var currentDigit = remainingDigits[i];
-              var currentOperator = remainingOperators[j];
+            var currentDigit = remainingDigits[i];
+            var remainingDigitsWithoutCurrent = remainingDigits.slice();
+            remainingDigitsWithoutCurrent.splice(i, 1);
 
-              var updatedExpression = expression + currentDigit + currentOperator;
-
-              var updatedDigits = remainingDigits.slice();
-              updatedDigits.splice(i, 1);
-
-              generateExpressions(updatedExpression, updatedDigits, remainingOperators);
+            if (operators.length > 0) {
+              for (var j = 0; j < operators.length; j++) {
+                var operator = operators[j];
+                var currentExpressionWithOperator = currentExpression + operator + currentDigit;
+                generateExpressions(currentExpressionWithOperator, remainingDigitsWithoutCurrent);
+              }
+            } else {
+              generateExpressions(currentExpression + currentDigit, remainingDigitsWithoutCurrent);
             }
           }
         }
 
-        generateExpressions("", digits, operators);
+        try {
+          generateExpressions("", digits);
+        } catch (error) {
+          if (error.message === "maxResultsReached") {
+            // Ignore the error
+          } else {
+            throw error;
+          }
+        }
+
         return combinations;
       }
 
@@ -79,14 +95,11 @@
         document.getElementById("result").textContent = "組み合わせが見つかりませんでした。";
       } else {
         var resultHTML = "<ul>";
-        for (var i = 0; i < combinations.length; i++) {
+        for (var i = 0; i < Math.min(combinations.length, 4); i++) {
           resultHTML += "<li>" + combinations[i] + "</li>";
-          if (i === 3) {
-            break;
-          }
         }
         if (combinations.length > 4) {
-          resultHTML += "<li>まだまだたくさんの組み合わせがあります。</li>";
+          resultHTML += "<li>まだまだたくさんの結果があります...</li>";
         }
         resultHTML += "</ul>";
         document.getElementById("result").innerHTML = resultHTML;
@@ -95,7 +108,7 @@
   </script>
 </head>
 <body>
-  <h1>Number Calculation〜</h1>
+  <h1>Number Calculation!</h1>
   <input type="text" id="number" placeholder="自然数を入力してください">
   <button onclick="calculate()">計算</button>
   <div id="result"></div>
