@@ -8,8 +8,8 @@
       var digits = Array.from(number.toString()).map(Number);
       var operators = ["+", "-", "*", "/"];
       var results = [];
-[12:24]
-function permute(permutation) {
+
+      function permute(permutation) {
         var length = permutation.length,
           result = [permutation.slice()],
           c = new Array(length).fill(0),
@@ -42,8 +42,7 @@ function permute(permutation) {
       }
 
       function generateCombinations(digits, operators) {
-[12:24]
-var combinations = [];
+        var combinations = [];
         var count = 0;
 
         function generateExpressions(currentExpression, remainingDigits) {
