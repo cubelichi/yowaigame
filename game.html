@@ -9,6 +9,30 @@
       var operators = ["+", "-", "*", "/"];
       var results = [];
 
+      function permute(permutation) {
+        var length = permutation.length,
+          result = [permutation.slice()],
+          c = new Array(length).fill(0),
+          i = 1,
+          k, p;
+
+        while (i < length) {
+          if (c[i] < i) {
+            k = i % 2 && c[i];
+            p = permutation[i];
+            permutation[i] = permutation[k];
+            permutation[k] = p;
+            ++c[i];
+            i = 1;
+            result.push(permutation.slice());
+          } else {
+            c[i] = 0;
+            ++i;
+          }
+        }
+        return result;
+      }
+
       function evaluateExpression(expression) {
         try {
           return eval(expression);
@@ -21,31 +45,33 @@
         var combinations = [];
         var count = 0;
 
-        function generateExpressions(expression, remainingDigits, remainingOperators) {
+        function generateExpressions(currentExpression, remainingDigits) {
           if (remainingDigits.length === 0) {
-            var result = evaluateExpression(expression);
+            var result = evaluateExpression(currentExpression);
             if (result === 10) {
-              combinations.push(expression + " = " + result);
+              combinations.push(currentExpression + " = " + result);
             }
             return;
           }
 
           for (var i = 0; i < remainingDigits.length; i++) {
-            for (var j = 0; j < remainingOperators.length; j++) {
-              var currentDigit = remainingDigits[i];
-              var currentOperator = remainingOperators[j];
+            var currentDigit = remainingDigits[i];
+            var remainingDigitsWithoutCurrent = remainingDigits.slice();
+            remainingDigitsWithoutCurrent.splice(i, 1);
 
-              var updatedExpression = expression + currentDigit + currentOperator;
-
-              var updatedDigits = remainingDigits.slice();
-              updatedDigits.splice(i, 1);
-
-              generateExpressions(updatedExpression, updatedDigits, remainingOperators);
+            if (operators.length > 0) {
+              for (var j = 0; j < operators.length; j++) {
+                var operator = operators[j];
+                var currentExpressionWithOperator = currentExpression + operator + currentDigit;
+                generateExpressions(currentExpressionWithOperator, remainingDigitsWithoutCurrent);
+              }
+            } else {
+              generateExpressions(currentExpression + currentDigit, remainingDigitsWithoutCurrent);
             }
           }
         }
 
-        generateExpressions("", digits, operators);
+        generateExpressions("", digits);
         return combinations;
       }
 
@@ -55,13 +81,8 @@
         document.getElementById("result").textContent = "組み合わせが見つかりませんでした。";
       } else {
         var resultHTML = "<ul>";
-        var displayedCount = 0;
         for (var i = 0; i < combinations.length; i++) {
           resultHTML += "<li>" + combinations[i] + "</li>";
-          displayedCount++;
-        }
-        if (displayedCount > 3) {
-          resultHTML += "<li>まだまだたくさんの組み合わせがあります。</li>";
         }
         resultHTML += "</ul>";
         document.getElementById("result").innerHTML = resultHTML;
@@ -70,7 +91,7 @@
   </script>
 </head>
 <body>
-  <h1>Number Calculation”</h1>
+  <h1>Number Calculation</h1>
   <input type="text" id="number" placeholder="自然数を入力してください">
   <button onclick="calculate()">計算</button>
   <div id="result"></div>
