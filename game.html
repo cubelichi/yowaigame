@@ -79,13 +79,15 @@
         document.getElementById("result").textContent = "組み合わせが見つかりませんでした。";
       } else {
         var resultHTML = "<ul>";
+        var displayedCount = 0;
         for (var i = 0; i < combinations.length; i++) {
           resultHTML += "<li>" + combinations[i] + "</li>";
-          if (i === 3) {
+          displayedCount++;
+          if (displayedCount === 3) {
             break;
           }
         }
-        if (combinations.length > 4) {
+        if (combinations.length > 3) {
           resultHTML += "<li>まだまだたくさんの組み合わせがあります。</li>";
         }
         resultHTML += "</ul>";
@@ -95,7 +97,7 @@
   </script>
 </head>
 <body>
-  <h1>Number Calculation</h1>
+  <h1>Number Calculation-</h1>
   <input type="text" id="number" placeholder="自然数を入力してください">
   <button onclick="calculate()">計算</button>
   <div id="result"></div>
