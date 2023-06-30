@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Number Calculation</title>
+  <title>与えられた数字の全ての桁の値で四則演算して10になるように計算するやつ</title>
+  <style>
+    .target-number {
+      opacity: 0.5;
+    }
+  </style>
   <script>
     function calculate() {
       var number = document.getElementById("number").value;
       var digits = Array.from(number.toString()).map(Number);
       var operators = ["+", "-", "*", "/"];
       var results = [];
+      var processedExpressions = {};
 
       function permute(permutation) {
         var length = permutation.length,
@@ -33,23 +39,27 @@
         return result;
       }
 
-      function evaluateExpression(expression) {
+      function evaluateExpression(expression, targetNumber) {
         try {
-          return eval(expression);
+          var result = eval(expression);
+          return (result === targetNumber) ? result : null;
         } catch (error) {
           return null;
         }
       }
 
-      function generateCombinations(digits, operators) {
+      function generateCombinations(digits, operators, targetNumber) {
         var combinations = [];
         var count = 0;
 
         function generateExpressions(currentExpression, remainingDigits) {
           if (remainingDigits.length === 0) {
-            var result = evaluateExpression(currentExpression);
-            if (result === 10) {
-              combinations.push(currentExpression + " = " + result);
+            if (!processedExpressions[currentExpression]) {
+              processedExpressions[currentExpression] = true;
+              var result = evaluateExpression(currentExpression, targetNumber);
+              if (result !== null) {
+                combinations.push(currentExpression.substring(1) + " = " + result);
+              }
             }
             return;
           }
@@ -59,24 +69,14 @@
             var remainingDigitsWithoutCurrent = remainingDigits.slice();
             remainingDigitsWithoutCurrent.splice(i, 1);
 
-            var currentExpressionWithDigit = currentExpression + currentDigit;
-
             if (operators.length > 0) {
               for (var j = 0; j < operators.length; j++) {
                 var operator = operators[j];
-                var currentExpressionWithOperator = currentExpressionWithDigit + operator;
+                var currentExpressionWithOperator = currentExpression + operator + currentDigit;
                 generateExpressions(currentExpressionWithOperator, remainingDigitsWithoutCurrent);
               }
             } else {
-              generateExpressions(currentExpressionWithDigit, remainingDigitsWithoutCurrent);
-            }
-
-            if (operators.length > 0) {
-              for (var j = 0; j < operators.length; j++) {
-                var operator = operators[j];
-                var currentExpressionWithResult = currentExpressionWithDigit + operator + result;
-                generateExpressions(currentExpressionWithResult, remainingDigitsWithoutCurrent);
-              }
+              generateExpressions(currentExpression + currentDigit, remainingDigitsWithoutCurrent);
             }
           }
         }
@@ -85,25 +85,58 @@
         return combinations;
       }
 
-      var combinations = generateCombinations(digits, operators);
-
-      if (combinations.length === 0) {
-        document.getElementById("result").textContent = "組み合わせが見つかりませんでした。";
-      } else {
-        var resultHTML = "<ul>";
-        for (var i = 0; i < combinations.length; i++) {
-          resultHTML += "<li>" + combinations[i] + "</li>";
+      var targetNumber = 10;
+      var customNumberCheckbox = document.getElementById("customNumberCheckbox");
+      var customNumberInput = document.getElementById("customNumber");
+      if (customNumberCheckbox.checked) {
+        var customNumber = parseInt(customNumberInput.value);
+        if (!isNaN(customNumber)) {
+          targetNumber = customNumber;
         }
-        resultHTML += "</ul>";
-        document.getElementById("result").innerHTML = resultHTML;
+      } else {
+        customNumberInput.value = "10";
       }
+
+      var resultContainer = document.getElementById("result");
+      resultContainer.textContent = "計算中...";
+
+      setTimeout(function () {
+        var combinations = generateCombinations(digits, operators, targetNumber);
+
+        if (combinations.length === 0) {
+          resultContainer.textContent = "組み合わせが見つかりませんでした。";
+        } else {
+          var resultHTML = "<ul>";
+          for (var i = 0; i < combinations.length; i++) {
+            resultHTML += "<li>" + combinations[i] + "</li>";
+          }
+          resultHTML += "</ul>";
+          resultContainer.innerHTML = resultHTML;
+        }
+      }, 0);
     }
   </script>
 </head>
 <body>
-  <h1>Number Calculation</h1>
-  <input type="text" id="number" placeholder="自然数を入力してください">
+  <h1>与えられた数字の全ての桁の値で四則演算して10になるように計算するやつ</h1>
+  <input type="text" id="number" placeholder="数字を入力してください">
+  <br>
+  <label for="customNumberCheckbox">
+    <input type="checkbox" id="customNumberCheckbox" onchange="updateCustomNumberInput()" />10以外で計算:
+  </label>
+  <input type="number" id="customNumber" value="10" disabled class="target-number">
   <button onclick="calculate()">計算</button>
   <div id="result"></div>
+  <script>
+    function updateCustomNumberInput() {
+      var customNumberCheckbox = document.getElementById("customNumberCheckbox");
+      var customNumberInput = document.getElementById("customNumber");
+      customNumberInput.disabled = !customNumberCheckbox.checked;
+      customNumberInput.classList.toggle("target-number", !customNumberCheckbox.checked);
+      if (!customNumberCheckbox.checked) {
+        customNumberInput.value = "10";
+      }
+    }
+  </script>
 </body>
 </html>
